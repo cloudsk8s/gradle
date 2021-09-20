@@ -23,8 +23,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
+import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -40,6 +41,9 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -66,6 +70,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
+    private final Provider<JavaLauncher> javaLauncher;
 
     /**
      * The Checkstyle configuration file to use.
@@ -83,8 +88,11 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     public Checkstyle() {
-        configDirectory = getObjectFactory().directoryProperty();
-        reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
+        this.configDirectory = getObjectFactory().directoryProperty();
+        this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
+        this.javaLauncher = getProject().getExtensions().getByType(JavaToolchainService.class).launcherFor(it -> {
+            it.getLanguageVersion().set(JavaLanguageVersion.of(8));
+        });
     }
 
     @Inject
@@ -148,8 +156,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     @TaskAction
     public void run() {
-        WorkQueue workQueue = getWorkerExecutor().processIsolation(worker -> {
-            worker.getClasspath().setFrom(getCheckstyleClasspath().getFiles());
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+            if(javaLauncher.isPresent()) {
+                spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            }
         });
 
         workQueue.submit(CheckstyleAction.class, parameters -> {
@@ -160,7 +170,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             parameters.getConfigDirectory().set(getConfigDirectory());
             parameters.getShowViolations().set(isShowViolations());
             parameters.getSource().setFrom(getSource());
-            parameters.getClasspath().setFrom(getClasspath());
+            parameters.getClasspath().from(getCheckstyleClasspath());
             parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
             parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
             parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
