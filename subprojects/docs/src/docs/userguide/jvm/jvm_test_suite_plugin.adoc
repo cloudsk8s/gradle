@@ -1,4 +1,4 @@
-// Copyright 2017 the original author or authors.
+// Copyright 2021 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,19 @@
 [[jvm_test_suite_plugin]]
 = The JVM Test Suite Plugin
 
-The JVM Test Suite plugin allows for defining multiple groups of automated tests in a Java project.  These tests can be compiled once and run multiple times against various different target environments (for example, on different JVMs).
+The JVM Test Suite plugin (plugin id: `jvm-test-suite`) allows for defining multiple groups of automated tests in a Java project.  These tests can be compiled once and run multiple times against various different target environments (for example, on different JVMs).
 
 This plugin can be used to define a group of Integration Tests, which might run much longer than unit tests and have different environmental requirements, and ought to be run against all the different JVMs which will be supported in production.
+
+[[sec:jvm_test_suite_usage]]
+== Usage
+
+This plugin is applied automatically by the `java` plugin, but can be explicitly applied if desired:
+
+.Using the JVM Test Suite plugin
+====
+include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=apply-jvm-test-suite]"]
+include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gradle.kts[tags=apply-jvm-test-suite]"]
+====
+
+The plugin adds a `testing` extension (type: link:{groovyDslPath}/org.gradle.testing.base.TestingExtension.html[TestingExtension]) to the project used to configure test suites.
