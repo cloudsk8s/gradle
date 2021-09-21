@@ -38,7 +38,7 @@ import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURA
  * <p>A {@link org.gradle.api.Plugin} which allows for defining, compiling and running groups of Java tests against (potentially)
  * various different target environments.</p>
  *
- * @see <a href="https://docs.gradle.org/current/userguide/test_suite_plugin.html">Test Suite plugin reference</a>
+ * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">Test Suite plugin reference</a>
  *
  * @since 7.3
  */
