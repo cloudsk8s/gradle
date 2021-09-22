@@ -49,7 +49,7 @@ class DefaultIncludedBuildTaskGraphTest extends Specification {
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
         when:
         graph.withNewTaskGraph { g ->
-            g.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
         }
 
         then:
