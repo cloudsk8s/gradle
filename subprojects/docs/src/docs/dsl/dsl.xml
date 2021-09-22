@@ -556,7 +556,7 @@
         <table>
             <title>Test types</title>
             <tr>
-                <td>org.gradle.api.tasks.testing.Test</td>
+                <td>org.gradle.testing.base.TestingExtension</td>
             </tr>
             <tr>
                 <td>org.gradle.testing.base.TestSuite</td>
@@ -571,7 +571,7 @@
                 <td>org.gradle.api.plugins.jvm.JvmTestSuiteTarget</td>
             </tr>
             <tr>
-                <td>org.gradle.testing.base.TestingExtension</td>
+                <td>org.gradle.api.tasks.testing.Test</td>
             </tr>
         </table>
     </section>

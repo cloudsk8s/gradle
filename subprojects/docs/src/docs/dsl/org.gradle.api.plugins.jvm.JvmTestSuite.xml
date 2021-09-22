@@ -49,9 +49,6 @@
                 <td>sources</td>
             </tr>
             <tr>
-                <td>getTargets</td>
-            </tr>
-            <tr>
                 <td>useJUnit</td>
             </tr>
             <tr>

@@ -36,9 +36,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>getTestTask</td>
-            </tr>
         </table>
     </section>
 </section>
