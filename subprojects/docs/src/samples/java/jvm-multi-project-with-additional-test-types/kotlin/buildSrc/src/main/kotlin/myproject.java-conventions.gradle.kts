@@ -1,9 +1,6 @@
-// tag::apply-jvm-test-suite[]
 plugins {
     java
-    `jvm-test-suite`
 }
-// end::apply-jvm-test-suite[]
 
 version = "1.0.2"
 group = "org.gradle.sample"
