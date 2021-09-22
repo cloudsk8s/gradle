@@ -78,11 +78,9 @@ Each test suite target has several things connected to it that are inherited fro
 [[sec:jvm_test_suite_examples]]
 === Configuration Examples
 
-// use subprojects/docs/src/snippets/developingPlugins/pluginWithVariants/groovy/build.gradle and
-// subprojects/docs/src/docs/userguide/developing-plugins/implementing_gradle_plugins.adoc as example for numeric callouts
+Here are several examples to illustrate the configurability of the `TestingExtension`.
 
-. TODO Users can add new test suites (which imply certain other things are created)
-
+.Declaring an additional test suite
 ====
 include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=configure-testing-extension]"]
 include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gradle.kts[tags=configure-testing-extension]"]
@@ -96,7 +94,17 @@ include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gra
 <6> Configure all targets of this suite.  By convention, test suite targets have no relationship to other `Test` tasks.  This example shows that the slower integration test suite targets should run after all of the targets of the `test` suite are complete.
 <7> By convention, test suite targets are not associated with the `check` task.  This configures the `check` task to depend on all `integrationTest` targets.
 
-. TODO Users can configure the built-in "test" test suite
+.Configuring the built-in `test` suite
+====
+include::sample[dir="snippets/testing/test-suite-configure-default-suite/groovy",files="build.gradle[tags=configure-default-suite]"]
+include::sample[dir="snippets/testing/test-suite-configure-default-suite/kotlin",files="build.gradle.kts[tags=configure-default-suite]"]
+====
+
+<1> All targets of the `test` test suite will use the TestNG framework
+<2> Lazily configure all targets of the suite; note the return type of `testTask` is `TaskProvider<Test>`.
+<3> More detailed options of the specific test framework can be configured here.  The `options` will be a subclass of `org.gradle.api.tasks.testing.TestFrameworkOptions`, in this case it is `org.gradle.api.tasks.testing.testng.TestNGOptions`
+
+
 . TODO Users can configure dependencies for a test suite
 . TODO Users can configure source directories for a test suite
 . TODO Users can configure the test task for a test suite target
