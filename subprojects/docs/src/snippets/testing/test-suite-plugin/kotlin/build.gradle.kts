@@ -20,3 +20,38 @@ plugins {
     `jvm-test-suite`
 }
 // end::apply-jvm-test-suite[]
+
+version = "1.0.2"
+group = "org.gradle.sample"
+
+repositories {
+    mavenCentral()
+}
+
+// tag::configure-testing-extension[]
+testing { // <1>
+    suites {
+        val test by getting(JvmTestSuite::class) { // <2>
+            useJUnitJupiter() // <3>
+        }
+
+        val integrationTest by registering(JvmTestSuite::class) { // <4>
+            dependencies {
+                implementation(project) // <5>
+            }
+
+            targets { // <6>
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named("check") { // <7>
+    dependsOn(testing.suites.named("integrationTest"))
+}
+// end::configure-testing-extension[]
