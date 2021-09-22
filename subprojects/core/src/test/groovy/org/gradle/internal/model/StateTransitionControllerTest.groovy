@@ -16,7 +16,6 @@
 
 package org.gradle.internal.model
 
-import org.gradle.internal.model.StateTransitionController
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.function.Supplier
