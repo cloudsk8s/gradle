@@ -23,7 +23,7 @@ import org.gradle.internal.build.ExportedTaskNode;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-interface BuildController {
+public interface BuildController {
     /**
      * Locates a task node in this build's work graph for use in another build's work graph.
      * Does not schedule the task for execution, use {@link #queueForExecution(ExportedTaskNode)} to queue the task for execution.
