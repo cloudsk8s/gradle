@@ -56,6 +56,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.Callable;
 
 /**
@@ -1763,5 +1764,3 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     DependencyLockingHandler getDependencyLocking();
 }
-
-compilation error
