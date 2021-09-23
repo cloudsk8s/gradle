@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -53,12 +55,13 @@ class DefaultBuildControllers implements BuildControllers {
             return buildController;
         }
 
+        BuildState build = buildRegistry.getBuild(buildId);
         BuildController newBuildController;
-        if (buildId.equals(DefaultBuildIdentifier.ROOT)) {
-            newBuildController = new RootBuildController(buildRegistry.getRootBuild());
+        if (build instanceof IncludedBuildState) {
+            newBuildController = new DefaultBuildController((IncludedBuildState) build, projectStateRegistry, workerLeaseService);
         } else {
-            IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
-            newBuildController = new DefaultBuildController(build, projectStateRegistry, workerLeaseService);
+            // Build's task execution is coordinated by something else (but should not be)
+            newBuildController = new RootBuildController(build);
         }
         controllers.put(buildId, newBuildController);
         return newBuildController;

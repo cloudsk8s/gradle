@@ -16,14 +16,14 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.BuildState;
 
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 class RootBuildController extends AbstractBuildController {
-    public RootBuildController(RootBuildState rootBuild) {
-        super(rootBuild);
+    public RootBuildController(BuildState build) {
+        super(build);
     }
 
     @Override

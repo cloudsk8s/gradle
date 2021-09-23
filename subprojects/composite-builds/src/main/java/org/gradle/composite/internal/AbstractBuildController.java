@@ -23,7 +23,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
@@ -45,12 +45,12 @@ abstract class AbstractBuildController implements BuildController, Stoppable {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
 
-    private final CompositeBuildParticipantBuildState build;
+    private final BuildState build;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
     private State state = State.DiscoveringTasks;
 
-    public AbstractBuildController(CompositeBuildParticipantBuildState build) {
+    public AbstractBuildController(BuildState build) {
         this.build = build;
     }
 

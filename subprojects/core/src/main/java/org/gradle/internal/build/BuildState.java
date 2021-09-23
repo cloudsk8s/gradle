@@ -107,6 +107,11 @@ public interface BuildState {
     GradleInternal getMutableModel();
 
     /**
+     * Returns the work graph for this build.
+     */
+    BuildWorkGraph getWorkGraph();
+
+    /**
      * Populates the task graph of this build using the given action.
      */
     void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
