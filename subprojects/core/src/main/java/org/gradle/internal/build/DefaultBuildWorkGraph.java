@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraph implements BuildWorkGraph {
     private final Object lock = new Object();
@@ -81,8 +82,17 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
     }
 
     @Override
+    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+        tasksScheduled = true;
+        controller.prepareToScheduleTasks();
+        controller.populateWorkGraph(action);
+    }
+
+    @Override
     public void prepareForExecution() {
-        controller.finalizeWorkGraph();
+        if (tasksScheduled) {
+            controller.finalizeWorkGraph();
+        }
         updateTasksPriorToExecution();
     }
 

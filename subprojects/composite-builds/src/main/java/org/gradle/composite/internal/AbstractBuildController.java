@@ -48,6 +48,7 @@ abstract class AbstractBuildController implements BuildController, Stoppable {
     private final BuildState build;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
+    private boolean somethingScheduled = false;
     private State state = State.DiscoveringTasks;
 
     public AbstractBuildController(BuildState build) {
@@ -69,13 +70,15 @@ abstract class AbstractBuildController implements BuildController, Stoppable {
     @Override
     public void queueForExecution(ExportedTaskNode taskNode) {
         assertInState(State.DiscoveringTasks);
+        somethingScheduled = true;
         queuedForExecution.add(taskNode);
     }
 
     @Override
     public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
         assertInState(State.DiscoveringTasks);
-        build.populateWorkGraph(action);
+        somethingScheduled = true;
+        build.getWorkGraph().populateWorkGraph(action);
     }
 
     @Override
@@ -123,7 +126,7 @@ abstract class AbstractBuildController implements BuildController, Stoppable {
     public void startTaskExecution(ExecutorService executorService) {
         assertInState(State.ReadyToRun);
         state = State.RunningTasks;
-        if (!scheduled.isEmpty()) {
+        if (somethingScheduled) {
             doStartTaskExecution(executorService);
         }
     }
@@ -132,7 +135,7 @@ abstract class AbstractBuildController implements BuildController, Stoppable {
     public ExecutionResult<Void> awaitTaskCompletion() {
         assertInState(State.RunningTasks);
         ExecutionResult<Void> result;
-        if (!scheduled.isEmpty()) {
+        if (somethingScheduled) {
             List<Throwable> failures = new ArrayList<>();
             doAwaitTaskCompletion(failures::add);
             result = ExecutionResult.maybeFailed(failures);

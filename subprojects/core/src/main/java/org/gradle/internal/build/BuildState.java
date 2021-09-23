@@ -24,7 +24,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -110,9 +109,4 @@ public interface BuildState {
      * Returns the work graph for this build.
      */
     BuildWorkGraph getWorkGraph();
-
-    /**
-     * Populates the task graph of this build using the given action.
-     */
-    void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 }

@@ -62,7 +62,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
         }
 
         then:
-        1 * build.populateWorkGraph(_)
+        1 * workGraph.populateWorkGraph(_)
         1 * workGraph.prepareForExecution()
     }
 
