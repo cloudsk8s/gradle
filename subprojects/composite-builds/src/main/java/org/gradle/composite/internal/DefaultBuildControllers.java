@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -107,11 +106,15 @@ class DefaultBuildControllers implements BuildControllers {
     private Comparator<BuildIdentifier> idComparator() {
         return (id1, id2) -> {
             // Root is always last
+            if (id1.equals(DefaultBuildIdentifier.ROOT)) {
+                if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
             if (id2.equals(DefaultBuildIdentifier.ROOT)) {
                 return -1;
-            }
-            if (id1.equals(DefaultBuildIdentifier.ROOT)) {
-                return 1;
             }
             return id1.getName().compareTo(id2.getName());
         };
