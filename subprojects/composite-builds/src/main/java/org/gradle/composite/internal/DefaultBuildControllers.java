@@ -27,17 +27,19 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.TreeMap;
 
-class DefaultIncludedBuildControllers implements IncludedBuildControllers {
-    private final Map<BuildIdentifier, IncludedBuildController> buildControllers = new LinkedHashMap<>();
+class DefaultBuildControllers implements BuildControllers {
+    // Always iterate over the controllers in a fixed order
+    private final Map<BuildIdentifier, BuildController> controllers = new TreeMap<>(idComparator());
     private final ManagedExecutor executorService;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerLeaseService workerLeaseService;
     private final BuildStateRegistry buildRegistry;
 
-    DefaultIncludedBuildControllers(ManagedExecutor executorService, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+    DefaultBuildControllers(ManagedExecutor executorService, BuildStateRegistry buildRegistry, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         this.executorService = executorService;
         this.buildRegistry = buildRegistry;
         this.projectStateRegistry = projectStateRegistry;
@@ -45,20 +47,20 @@ class DefaultIncludedBuildControllers implements IncludedBuildControllers {
     }
 
     @Override
-    public IncludedBuildController getBuildController(BuildIdentifier buildId) {
-        IncludedBuildController buildController = buildControllers.get(buildId);
+    public BuildController getBuildController(BuildIdentifier buildId) {
+        BuildController buildController = controllers.get(buildId);
         if (buildController != null) {
             return buildController;
         }
 
-        IncludedBuildController newBuildController;
+        BuildController newBuildController;
         if (buildId.equals(DefaultBuildIdentifier.ROOT)) {
             newBuildController = new RootBuildController(buildRegistry.getRootBuild());
         } else {
             IncludedBuildState build = buildRegistry.getIncludedBuild(buildId);
-            newBuildController = new DefaultIncludedBuildController(build, projectStateRegistry, workerLeaseService);
+            newBuildController = new DefaultBuildController(build, projectStateRegistry, workerLeaseService);
         }
-        buildControllers.put(buildId, newBuildController);
+        controllers.put(buildId, newBuildController);
         return newBuildController;
     }
 
@@ -67,20 +69,20 @@ class DefaultIncludedBuildControllers implements IncludedBuildControllers {
         boolean tasksDiscovered = true;
         while (tasksDiscovered) {
             tasksDiscovered = false;
-            for (IncludedBuildController buildController : ImmutableList.copyOf(buildControllers.values())) {
+            for (BuildController buildController : ImmutableList.copyOf(controllers.values())) {
                 if (buildController.populateTaskGraph()) {
                     tasksDiscovered = true;
                 }
             }
         }
-        for (IncludedBuildController buildController : buildControllers.values()) {
+        for (BuildController buildController : controllers.values()) {
             buildController.prepareForExecution();
         }
     }
 
     @Override
     public void startTaskExecution() {
-        for (IncludedBuildController buildController : buildControllers.values()) {
+        for (BuildController buildController : controllers.values()) {
             buildController.startTaskExecution(executorService);
         }
     }
@@ -88,7 +90,7 @@ class DefaultIncludedBuildControllers implements IncludedBuildControllers {
     @Override
     public ExecutionResult<Void> awaitTaskCompletion() {
         ExecutionResult<Void> result = ExecutionResult.succeeded();
-        for (IncludedBuildController buildController : buildControllers.values()) {
+        for (BuildController buildController : controllers.values()) {
             result = result.withFailures(buildController.awaitTaskCompletion());
         }
         return result;
@@ -96,6 +98,19 @@ class DefaultIncludedBuildControllers implements IncludedBuildControllers {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(buildControllers.values()).stop();
+        CompositeStoppable.stoppable(controllers.values()).stop();
+    }
+
+    private Comparator<BuildIdentifier> idComparator() {
+        return (id1, id2) -> {
+            // Root is always last
+            if (id2.equals(DefaultBuildIdentifier.ROOT)) {
+                return -1;
+            }
+            if (id1.equals(DefaultBuildIdentifier.ROOT)) {
+                return 1;
+            }
+            return id1.getName().compareTo(id2.getName());
+        };
     }
 }

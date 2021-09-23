@@ -21,7 +21,7 @@ import org.gradle.internal.build.RootBuildState;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-class RootBuildController extends AbstractIncludedBuildController {
+class RootBuildController extends AbstractBuildController {
     public RootBuildController(RootBuildState rootBuild) {
         super(rootBuild);
     }

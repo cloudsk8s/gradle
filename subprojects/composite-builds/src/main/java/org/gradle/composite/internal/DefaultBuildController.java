@@ -33,7 +33,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-class DefaultIncludedBuildController extends AbstractIncludedBuildController {
+class DefaultBuildController extends AbstractBuildController {
     private final IncludedBuildState includedBuild;
     private final ProjectStateRegistry projectStateRegistry;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
@@ -45,7 +45,7 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
     private boolean finished;
     private final List<Throwable> executionFailures = new ArrayList<>();
 
-    public DefaultIncludedBuildController(IncludedBuildState includedBuild, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
+    public DefaultBuildController(IncludedBuildState includedBuild, ProjectStateRegistry projectStateRegistry, WorkerLeaseService workerLeaseService) {
         super(includedBuild);
         this.includedBuild = includedBuild;
         this.projectStateRegistry = projectStateRegistry;
@@ -139,7 +139,7 @@ class DefaultIncludedBuildController extends AbstractIncludedBuildController {
         public void run() {
             CurrentBuildOperationRef.instance().set(parentBuildOperation);
             try {
-                DefaultIncludedBuildController.this.run();
+                DefaultBuildController.this.run();
             } finally {
                 CurrentBuildOperationRef.instance().set(null);
             }

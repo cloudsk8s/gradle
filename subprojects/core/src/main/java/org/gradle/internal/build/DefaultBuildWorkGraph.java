@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -55,7 +56,7 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
     }
 
     @Override
-    public void schedule(Collection<ExportedTaskNode> taskNodes) {
+    public boolean schedule(Collection<ExportedTaskNode> taskNodes) {
         List<Task> tasks = new ArrayList<>();
         for (ExportedTaskNode taskNode : taskNodes) {
             DefaultExportedTaskNode node = (DefaultExportedTaskNode) taskNode;
@@ -63,20 +64,25 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
                 throw new IllegalArgumentException();
             }
             node.whenScheduled();
-            tasks.add(node.getTask());
+            if (findTaskInWorkGraph(node.taskPath) == null) {
+                // Not already in task graph
+                tasks.add(node.getTask());
+            }
         }
         tasksScheduled = true;
+        if (tasks.isEmpty()) {
+            return false;
+        }
         projectStateRegistry.withMutableStateOfAllProjects(() -> {
             controller.prepareToScheduleTasks();
-            controller.populateWorkGraph(taskGraph -> {
-                taskGraph.addEntryTasks(tasks);
-            });
+            controller.populateWorkGraph(taskGraph -> taskGraph.addEntryTasks(tasks));
         });
+        return true;
     }
 
     @Override
-    public void prepareForExecution(boolean alwaysPopulateWorkGraph) {
-        controller.finalizeWorkGraph(alwaysPopulateWorkGraph || tasksScheduled);
+    public void prepareForExecution() {
+        controller.finalizeWorkGraph();
         updateTasksPriorToExecution();
     }
 
@@ -118,10 +124,7 @@ public class DefaultBuildWorkGraph implements BuildWorkGraph {
         return task;
     }
 
-    private IllegalStateException includedBuildTaskWasNeverScheduled(String taskPath) {
-        return new IllegalStateException("Included build task '" + taskPath + "' was never scheduled for execution.");
-    }
-
+    @Nullable
     private TaskInternal findTaskInWorkGraph(String taskPath) {
         for (Task task : taskGraph.getAllTasks()) {
             if (task.getPath().equals(taskPath)) {

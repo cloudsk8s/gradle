@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
@@ -39,7 +40,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
-abstract class AbstractIncludedBuildController implements IncludedBuildController, Stoppable {
+abstract class AbstractBuildController implements BuildController, Stoppable {
     private enum State {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
@@ -49,7 +50,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
     private State state = State.DiscoveringTasks;
 
-    public AbstractIncludedBuildController(CompositeBuildParticipantBuildState build) {
+    public AbstractBuildController(CompositeBuildParticipantBuildState build) {
         this.build = build;
     }
 
@@ -72,6 +73,12 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
     }
 
     @Override
+    public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
+        assertInState(State.DiscoveringTasks);
+        build.populateWorkGraph(action);
+    }
+
+    @Override
     public boolean populateTaskGraph() {
         // Can be called after validating task graph
         if (state == State.ReadyToRun) {
@@ -84,10 +91,10 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
             return false;
         }
 
-        build.getWorkGraph().schedule(queuedForExecution);
+        boolean added = build.getWorkGraph().schedule(queuedForExecution);
         scheduled.addAll(queuedForExecution);
         queuedForExecution.clear();
-        return true;
+        return added;
     }
 
     @Override
@@ -107,7 +114,7 @@ abstract class AbstractIncludedBuildController implements IncludedBuildControlle
         for (ExportedTaskNode node : scheduled) {
             checkForCyclesFor(node.getTask(), visited, visiting);
         }
-        build.getWorkGraph().prepareForExecution(false);
+        build.getWorkGraph().prepareForExecution();
 
         state = State.ReadyToRun;
     }

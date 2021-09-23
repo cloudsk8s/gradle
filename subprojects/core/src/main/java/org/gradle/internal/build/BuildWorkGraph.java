@@ -38,12 +38,12 @@ public interface BuildWorkGraph {
     /**
      * Schedules the given tasks and all of their dependencies in this build's work graph.
      */
-    void schedule(Collection<ExportedTaskNode> taskNodes);
+    boolean schedule(Collection<ExportedTaskNode> taskNodes);
 
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
      */
-    void prepareForExecution(boolean alwaysPopulateWorkGraph);
+    void prepareForExecution();
 
     /**
      * Runs all currently scheduled tasks.
