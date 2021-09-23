@@ -1763,3 +1763,5 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      */
     DependencyLockingHandler getDependencyLocking();
 }
+
+compilation error
